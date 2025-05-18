@@ -1,6 +1,0 @@
-fastapi==0.95.2
-uvicorn==0.22.0
-sqlalchemy==2.0.15
-psycopg2-binary==2.9.6
-boto3==1.26.142
-prometheus-client==0.17.0

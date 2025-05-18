@@ -7,10 +7,10 @@ async def Upload(file, request, bucket_name, minio_client, templates):
     file_size = file.file.tell()
     file.file.seek(0)
     
-    if file_size > 10 * 1024 * 1024:
+    if file_size > 100 * 1024 * 1024:
         raise HTTPException(
             status_code=400,
-            detail="File too large (max 10MB)"
+            detail="File too large (max 100MB)"
         )
 
     file_ext = os.path.splitext(file.filename)[1]
@@ -29,7 +29,7 @@ async def Upload(file, request, bucket_name, minio_client, templates):
         "datasets.html",
         {
             "request": request,
-            "filename": file.filename,
+            "filename": unique_filename,
             "size": file_size,
             "object_name": unique_filename,
             "bucket": bucket

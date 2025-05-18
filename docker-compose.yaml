@@ -44,7 +44,6 @@ services:
       - facade
       - data-processing-service
       - models-service
-      - models-training-service
 
   grafana:
     image: grafana/grafana:latest
@@ -91,6 +90,11 @@ services:
     depends_on:
       - postgres
       - minio
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'     # Minimum guaranteed CPU
+          memory: 1G      # Minimum guaranteed RAM
 
   models-service:
     build:
@@ -98,19 +102,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/appdb
-    networks:
-      - app-network
-    depends_on:
-      - postgres
-
-  models-training-service:
-    build:
-      context: ./services/models-training-service
-      dockerfile: Dockerfile
-    ports:
-      - "8003:8000"
     environment:
       - DATABASE_URL=postgresql://admin:admin123@postgres:5432/appdb
     networks:

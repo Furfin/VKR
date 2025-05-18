@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from internal.minio.client import MinioClient
+from pkg.minio.client import MinioClient
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,7 +11,7 @@ import uuid
 from typing import Optional
 from . import upload
 
-minio_client = MinioClient()
+minio_client = MinioClient(os.getenv("MINIO_ENDPOINT"),os.getenv("MINIO_ACCESS_KEY"),os.getenv("MINIO_SECRET_KEY"),False)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="internal/templates")

@@ -15,14 +15,7 @@
         <label for="file">Select File:</label>
         <input type="file" name="file" id="file" required>
     </div>
-    
-    <div class="form-group">
-        <label for="bucket">Bucket Name (optional):</label>
-        <input type="text" name="bucket_name" id="bucket" 
-               value="{{ DEFAULT_BUCKET or 'uploads' }}">
-    </div>
-    
-    <button type="submit" class="button">Upload</button>
+    <button type="submit" class="button" onclick="javascript:window.location.reload()">Upload</button>
 </form>
 <h1>List of datasets, get it from api call</h1>
 <p>Here will be something</p>
