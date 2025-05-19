@@ -1,8 +1,12 @@
 from fastapi import HTTPException
+from fastapi.responses import RedirectResponse
 import os
 import uuid
+import requests
 
-async def Upload(file, request, bucket_name, minio_client, templates):
+API_URL = "http://localhost:8001/api/"
+
+async def Upload(file, target, minio_client, templates):
     file.file.seek(0, 2)
     file_size = file.file.tell()
     file.file.seek(0)
@@ -16,7 +20,7 @@ async def Upload(file, request, bucket_name, minio_client, templates):
     file_ext = os.path.splitext(file.filename)[1]
     unique_filename = f"{uuid.uuid4().hex}{file_ext}"
 
-    bucket = bucket_name or os.getenv("DEFAULT_BUCKET")
+    bucket = os.getenv("DEFAULT_BUCKET")
     await minio_client.upload_fileobj(
         bucket_name=bucket,
         object_name=unique_filename,
@@ -24,14 +28,7 @@ async def Upload(file, request, bucket_name, minio_client, templates):
         length=file_size,
         content_type=file.content_type
     )
+    
+    requests.post(API_URL+"CreateDataset", params={"filename":unique_filename, "target_column":target})
 
-    return templates.TemplateResponse(
-        "datasets.html",
-        {
-            "request": request,
-            "filename": unique_filename,
-            "size": file_size,
-            "object_name": unique_filename,
-            "bucket": bucket
-        }
-    )
+    return RedirectResponse("http://localhost:8000/datasets", status_code=303)

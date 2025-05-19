@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}{{ obj.filename }}{% endblock %}
+
+{% block content %}
+
+<style>
+  table {
+        border-collapse: collapse;
+        border: 2px solid rgb(140 140 140);
+        font-family: sans-serif;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+    }
+    th,
+    td {
+    border: 1px solid rgb(160 160 160);
+    padding: 8px 10px;
+    }
+
+    td:last-of-type {
+    text-align: center;
+    }
+
+    tbody > tr:nth-of-type(even) {
+    background-color: rgb(237 238 242);
+    }
+
+    tfoot th {
+    text-align: right;
+    }
+
+    tfoot td {
+    font-weight: bold;
+    }
+</style>
+
+<h1>Dataset info ({{filename}})</h1>
+
+<table>
+  <caption>
+    Dataset metadata
+  </caption>
+  <thead>
+    <tr>
+      <th scope="col">Atribute</th>
+      <th scope="col">Value</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Target</th>
+      <td>{{ obj.data.target }}</td>
+      <td>None</td>
+      
+    </tr>
+    <tr>
+        <th>Target type</th>
+        <td>{{ tt }}</td>
+        <td>None</td>    
+    </tr>
+    <tr>
+      <th>Columns</th>
+      <td>{{ cols }}</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>Augmentation num</th>
+      <td>{{ obj.data.aug_num }}</td>
+      <td>
+        <form action="/datasets/{{ filename }}/change_augmentation" method="post">
+            <button type="submit">Modify</button>
+        </form>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h1>Columns</h1>
+
+<style>
+  table {
+        border-collapse: collapse;
+        border: 2px solid rgb(140 140 140);
+        font-family: sans-serif;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+    }
+    th,
+    td {
+    border: 1px solid rgb(160 160 160);
+    padding: 8px 10px;
+    }
+
+    td:last-of-type {
+    text-align: center;
+    }
+
+    tbody > tr:nth-of-type(even) {
+    background-color: rgb(237 238 242);
+    }
+
+    tfoot th {
+    text-align: right;
+    }
+
+    tfoot td {
+    font-weight: bold;
+    }
+</style>
+
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Type</th>
+      <th scope="col">Preprocessing strategy</th>
+      <th scope="col">Augmentation strategy</th>
+      <th scope="col">Drop</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for obj2 in objects.items() %}
+    <tr>
+        <th>{{obj2[0]}}</th>
+        <td>{{obj2[1].type}}</td>
+        <td>{{obj2[1].strat}}</td>  
+        <td>{{obj2[1].aug}}</td>
+        <td>
+            {% if obj2[0] != obj.data.target %}
+            <button id="Drop{{obj2[0]}}">Drop</button>
+            <script>
+            document.getElementById("Drop{{obj2[0]}}").addEventListener('click', async () => {
+                const filename = "{{ filename }}";
+                const column = "{{ obj2[0] }}";
+
+                
+                try {
+                    const response = await fetch(`http://localhost:8001/api/DropColumn?filename=${filename}&column=${column}`, {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                        }
+                    });
+                    
+                } catch (error) {
+                    window.location.reload();
+                }
+            });
+            </script>
+            {%endif%}
+        </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h1>Preprocessing status: {{status}}</h1>
+
+<button id="fetchBtn">Start processing</button>
+
+<script>
+document.getElementById('fetchBtn').addEventListener('click', async () => {
+    const filename = "{{ filename }}";
+
+    
+    try {
+        const response = await fetch(`http://localhost:8001/start_processing_dataset?filename=${filename}`, {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Action failed: ' + (await response.text()));
+        }
+    } catch (error) {
+        alert('Network error: ' + error);
+    }
+});
+</script>
+
+<br>
+
+{% if status == 'done' %}
+<a href="{{ data_url }}" class="file-link" target="_blank">
+    data        
+</a>
+
+<br>
+
+<a href="{{ target_url }}" class="file-link" target="_blank">
+    target        
+</a>
+
+{%endif%}
+
+
+{% endblock %}

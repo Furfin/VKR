@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Request, status, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from pkg.minio.client import MinioClient
@@ -18,7 +18,6 @@ minio_client = MinioClient(os.getenv("MINIO_ENDPOINT"),os.getenv("MINIO_ACCESS_K
 
 db_client = storage.ModelsStorageClient(os.getenv('DATABASE_URL'))
 
-processing_tasks: Dict[str, asyncio.Task] = {}
 target_processing_tasks: Dict[str, asyncio.Task] = {}
 model_statuses: Dict[str, str] = {}
 
@@ -41,51 +40,35 @@ async def list_models():
         return {"Error": str(e)}
 
 @router.post("/api/TrainModel")
-async def train_model(model_name: str, filename: str, num_epoch:int = 100):
-    model = Model(model_name, minio_client, db_client)
-    
-    if filename in processing_tasks and not processing_tasks[filename].done():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Dataset is already being processed"
-        )
-    
-    processing_task = asyncio.create_task(
-        model.train_model_with(
-            filename=filename,
-            num_epoch=num_epoch
-        )
-    )
+async def train_model( background_tasks: BackgroundTasks, model_name: str, filename: str, num_epoch:int = 100):
+    try:
+        model = Model(model_name, minio_client, db_client)
+        
+        background_tasks.add_task(model.train_model_with,filename=filename,num_epoch=num_epoch)
 
-    processing_tasks[filename] = processing_task
-    model_statuses[model_name] = "training"
-    
-    return JSONResponse(
-        content={
-            "message": "Training started",
-        },
-        status_code=status.HTTP_202_ACCEPTED
-    )
+        model_statuses[model_name] = "training"
+        
+        return JSONResponse(
+            content={
+                "message": "Training started",
+            },
+            status_code=status.HTTP_202_ACCEPTED
+        )
+    except Exception as e:
+        model.model_data["status"] = "error"
+        model.save()
+        return {"Error": str(e)}
+
 
 @router.get("/api/TrainStatus")
 async def get_training_status(model_name: str):
-    if model_name not in model_statuses:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dataset not found"
-        )
-    
-    if model_statuses[model_name] == "training":
-        status_info = {
-            "model_name": model_name,
-            "status": model_statuses[model_name]
-        }
-        
-        return status_info
-    elif model_statuses[model_name] == "done":
-        model = Model(model_name, minio_client, db_client)
-        return {model.model_data["last_result"]}
-        
+    model = Model(model_name, minio_client, db_client)
+    return {model.model_data["status"]}
+
+@router.get("/api/GetModel")
+async def get_model(model_name: str):
+    model = Model(model_name, minio_client, db_client)
+    return model.model_data
 
 @router.get("/")
 async def home(request: Request):

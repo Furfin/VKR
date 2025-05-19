@@ -1,22 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Datasets{% endblock %}
+{% block title %}Upload dataset{% endblock %}
 
 {% block content %}
-{% if filename %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-<strong>{{ filename }}</strong> You should check in on some of those fields below.
-<span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span>
-</div>
-{% endif %}
-<h1>Upload new dataset</h1>
 <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label for="file">Select File:</label>
         <input type="file" name="file" id="file" required>
     </div>
+    <div class="form-group">
+        <label for="target">Target:</label>
+        <input type="text" id="target" name="target" required>
+    </div>
     <button type="submit" class="button" onclick="javascript:window.location.reload()">Upload</button>
 </form>
-<h1>List of datasets, get it from api call</h1>
-<p>Here will be something</p>
 {% endblock %}

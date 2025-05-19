@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Datasets list{% endblock %}
+
+{% block content %}
+
+<a href="/datasets/upload">Upload dataset</a>
+<br>
+
+<h1>Datasets list</h1>
+<ul>
+    {% for obj in objects %}
+    <li>
+        <a href="/datasets/{{ obj.filename }}">{{ obj.filename }}</a>
+        <button id="delete{{obj.filename}}">delete</button>
+            <script>
+            document.getElementById("delete{{obj.filename}}").addEventListener('click', async () => {
+                const filename = "{{ obj.filename }}";
+
+                
+                try {
+                    const response = await fetch(`http://localhost:8001/api/Delete?filename=${filename}`, {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                        }
+                    });
+                    
+                } catch (error) {
+                    window.location.reload();
+                }
+            });
+            </script>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

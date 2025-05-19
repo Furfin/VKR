@@ -8,8 +8,11 @@ import autokeras as ak
 import keras
 from io import BytesIO
 import json
+import tempfile
+import os
 
-API_URL = "data-processing-service:8001/api"
+
+API_URL = "http://localhost:8001/api/"
 MODELS_BUCKET = "models"
 
 class Model():
@@ -41,17 +44,19 @@ class Model():
             model, result = await self.cat_train(filename, num_epoch)
         else:
             raise ValueError("invalid target type:"+ data["columns"][data["target"]]["type"])
-        
-        buffer = BytesIO()
-        model.save(buffer, save_format='keras')
-        buffer.seek(0)
-        await self.minio_client.upload_fileobj(
-            bucket_name=MODELS_BUCKET,
-            object_name=self.model_name,
-            file=buffer,
-            length=buffer.getbuffer().nbytes,
-            metadata={"x-amz-meta-json": json.dumps({"Info":"Keras model","TM":"Furfin's VKR autoMl solution"})}
-        )
+        filepath = "tmp/"+self.model_name+'.keras'
+        model.save(filepath)
+        with open(filepath, "rb") as file_data:
+            file_stat = os.stat(filepath)
+            await self.minio_client.upload_fileobj(
+                    bucket_name=MODELS_BUCKET,
+                    object_name=self.model_name+".keras",
+                    file=file_data,
+                    length=file_stat.st_size,
+                    content_type="keras/model"
+                )
+        if os.path.exists(filepath):
+            os.remove(filepath)
         self.model_data["last_result"] = result
         self.model_data["status"] = "done"
         self.save()
@@ -84,8 +89,32 @@ class Model():
 
         input  = ak.Input()
         out = ak.ClassificationHead(num_classes=classes,  loss=keras.losses.CategoricalCrossentropy())
-        search = ak.AutoModel(max_trials=15, overwrite=True, inputs=input, outputs=out)
+        search = ak.AutoModel(max_trials=1, overwrite=True, inputs=input, outputs=out)
         search.fit(x=X_train.values, y=y_train.values, epochs=num_epoch, verbose = 0)
         model = search.export_model()
         return model, list(model.evaluate(X_test, y_test))
+    
+    async def save_model_to_minio(self, model):
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".keras", delete=False, mode="wb+") as tmp_file:
+                temp_path = tmp_file.name
+                model.save(temp_path)
+                tmp_file.seek(0)
+                tmp_file.flush()
+                file_size = tmp_file.tell()
+                print(file_size)
+                tmp_file.seek(0)
+                await self.minio_client.upload_fileobj(
+                    bucket_name=MODELS_BUCKET,
+                    object_name=self.model_name+".keras",
+                    file=tmp_file,
+                    length=file_size,
+                    content_type="keras/model"
+                )
+        except Exception as e:
+            raise ValueError("error error")
+        finally:
+            # 5. Гарантированное удаление временного файла
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
         

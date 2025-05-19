@@ -13,7 +13,7 @@ class Dataset:
         self.filename = filename
         self.minio_client = minio_client
         self.df = None
-        self.data: Dict[str, Any] = {"aug_num":0, "target": target}
+        self.data: Dict[str, Any] = {"aug_num":0, "target": target, "status":"new"}
         
     async def initialize(self):
         self.df = clean_dataframe(await self.minio_client.download_fileobj_sample(DATASETS_BUCKET, self.filename))
@@ -27,7 +27,7 @@ class Dataset:
         columns = self.data[COLUMNS_KEY].keys()
         data = self.data[COLUMNS_KEY]
         if self.data["target"] not in columns:
-            raise ValueError(f"init dataset: traget column {self.data["target"]} not found")
+            raise ValueError(f"init dataset: traget column not found")
         for col in columns:
             if data[col]["type"] == numeric_datatype:
                     data[col]["strat"] = NUM_STRAT_NONE

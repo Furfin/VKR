@@ -40,11 +40,6 @@ services:
       - "9090:9090"
     networks:
       - app-network
-    depends_on:
-      - facade
-      - data-processing-service
-      - models-service
-
   grafana:
     image: grafana/grafana:latest
     volumes:
@@ -58,56 +53,6 @@ services:
       - app-network
     depends_on:
       - prometheus
-
-  facade:
-    build:
-      context: ./services/facade
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/appdb
-      - S3_ENDPOINT=http://minio:9000
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
-    networks:
-      - app-network
-    depends_on:
-      - postgres
-      - minio
-
-  data-processing-service:
-    build:
-      context: ./services/data-processing-service
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/appdb
-      - S3_ENDPOINT=http://minio:9000
-    networks:
-      - app-network
-    depends_on:
-      - postgres
-      - minio
-    deploy:
-      resources:
-        reservations:
-          cpus: '4'     # Minimum guaranteed CPU
-          memory: 1G      # Minimum guaranteed RAM
-
-  models-service:
-    build:
-      context: ./services/models-service
-      dockerfile: Dockerfile
-    ports:
-      - "8002:8000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/appdb
-    networks:
-      - app-network
-    depends_on:
-      - postgres
 
 volumes:
   postgres_data:

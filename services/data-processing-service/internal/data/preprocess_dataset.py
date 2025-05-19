@@ -41,7 +41,7 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 
 def parse_date(date):
-    parsed = dateparser.parse(date)
+    parsed = dateparser.parse(str(date))
     if parsed == None:
         raise ValueError
     return parsed

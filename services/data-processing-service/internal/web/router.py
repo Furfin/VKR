@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, BackgroundTasks
 from fastapi.responses import StreamingResponse, JSONResponse
 from pkg.minio.client import MinioClient
 from internal.web.api.create_dataset import CreateDataset
@@ -14,6 +14,7 @@ from typing import Dict, Any, List
 import asyncio
 import os
 import uuid
+from concurrent.futures import ProcessPoolExecutor
 
 minio_client = MinioClient(os.getenv("MINIO_ENDPOINT"),os.getenv("MINIO_ACCESS_KEY"),os.getenv("MINIO_SECRET_KEY"),False)
 
@@ -143,14 +144,29 @@ async def cast_to_cat(filename: str, column: str):
     except Exception as e:
         return {"Error": str(e)}
 
+@router.post("/api/Delete")
+async def cast_to_cat(filename: str):
+    try:
+        db_client.delete_object(filename)
+        
+        return {"message":"ok"}
+    except Exception as e:
+        return {"Error": str(e)}
+
 async def process_dataset(
     filename: str,
     dataset: Dataset,
 ):
     try:
+        dataset.data["status"] = "processing"
+        db_client.update_object(filename, dataset.get_data())
         await dataset.upload_preprocessed_dataset()
         await dataset.upload_preprocessed_target()
+        dataset.data["status"] = "done"
+        db_client.update_object(filename, dataset.get_data())
     except Exception as e:
+        dataset.data["status"] = "done"
+        db_client.update_object(filename, dataset.get_data())
         file_statuses[filename] = f"error: {str(e)}"
         raise
     finally:
@@ -160,24 +176,21 @@ async def process_dataset(
             del processing_tasks[filename]
 
 @router.post("/start_processing_dataset")
-async def start_processing(filename: str):
+async def start_processing(filename: str, background_tasks: BackgroundTasks):
     md = db_client.get_object_by_name(filename)
     dataset = Dataset(minio_client, filename, md["data"]['target'])
     await dataset.initialize()
     dataset.set_data(md)
     
-    if filename in processing_tasks and not processing_tasks[filename].done():
+    if filename in processing_tasks:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Dataset is already being processed"
         )
     
-    processing_task = asyncio.create_task(
-        process_dataset(
-            filename=filename,
-            dataset=dataset
-        )
-    )
+    processing_task = "task"
+    
+    background_tasks.add_task(process_dataset,filename, dataset)
 
     processing_tasks[filename] = processing_task
     file_statuses[filename] = "processing"
