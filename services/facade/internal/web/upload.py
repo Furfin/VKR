@@ -11,10 +11,10 @@ async def Upload(file, target, minio_client, templates):
     file_size = file.file.tell()
     file.file.seek(0)
     
-    if file_size > 100 * 1024 * 1024:
+    if file_size > 10 * 1024 * 1024:
         raise HTTPException(
             status_code=400,
-            detail="File too large (max 100MB)"
+            detail="File too large (max 10MB)"
         )
 
     file_ext = os.path.splitext(file.filename)[1]
@@ -31,4 +31,4 @@ async def Upload(file, target, minio_client, templates):
     
     requests.post(API_URL+"CreateDataset", params={"filename":unique_filename, "target_column":target})
 
-    return RedirectResponse("http://localhost:8000/datasets", status_code=303)
+    return RedirectResponse(f"http://localhost:8000/datasets?newfile={unique_filename}", status_code=303)

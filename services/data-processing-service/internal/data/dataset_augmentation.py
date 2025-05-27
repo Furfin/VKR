@@ -10,6 +10,22 @@ DATETIME_AUG_SHIFT = "Timeseries shift"
 DATETIME_AUG_NOISE = "Datetime Noise"
 DATETIME_AUG_SCALE = "Scaling"
 
+num_augs = [
+    NUM_AUG_SMOTE,
+    NUM_AUG_NOISE,
+    NUM_AUG_MIXUP,
+]
+
+cat_augs = [CAT_AUG_FREQW]
+
+text_augs = [TEXT_AUG_NOISE]
+
+date_augs = [
+    DATETIME_AUG_SHIFT,
+    DATETIME_AUG_NOISE,
+    DATETIME_AUG_SCALE,
+]
+
 
 from nlpaug.augmenter.word import SynonymAug, RandomWordAug
 import numpy as np

@@ -1,1 +1,1 @@
-{"inputs": [[]], "outputs": [[]]}
+{"inputs": [[]], "outputs": [[{"module": "autokeras.preprocessors.postprocessors", "class_name": "SoftmaxPostprocessor", "config": {}, "registered_name": "SoftmaxPostprocessor"}]]}

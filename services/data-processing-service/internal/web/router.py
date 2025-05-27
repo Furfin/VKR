@@ -130,6 +130,29 @@ async def drop_column(filename: str, column: str):
     except Exception as e:
         return {"Error": str(e)}
 
+@router.post("/api/UpdateStart")
+async def drop_column(filename: str, column: str, strat: str):
+    md = db_client.get_object_by_name(filename)
+    dataset = Dataset(minio_client, filename, md["data"]['target'])
+    await dataset.initialize()
+    md["data"][COLUMNS_KEY][column]["strat"] = strat
+    dataset.set_data(md)
+    db_client.update_object(filename, dataset.get_data())
+    
+    return {"message":"ok"}
+
+@router.post("/api/UpdateAug")
+async def drop_column(filename: str, column: str, strat: str):
+    md = db_client.get_object_by_name(filename)
+    dataset = Dataset(minio_client, filename, md["data"]['target'])
+    await dataset.initialize()
+    md["data"][COLUMNS_KEY][column]["aug"] = strat
+    dataset.set_data(md)
+    db_client.update_object(filename, dataset.get_data())
+    
+    return {"message":"ok"}
+
+
 @router.post("/api/CastToCat")
 async def cast_to_cat(filename: str, column: str):
     try:
@@ -158,8 +181,6 @@ async def process_dataset(
     dataset: Dataset,
 ):
     try:
-        dataset.data["status"] = "processing"
-        db_client.update_object(filename, dataset.get_data())
         await dataset.upload_preprocessed_dataset()
         await dataset.upload_preprocessed_target()
         dataset.data["status"] = "done"
@@ -189,6 +210,9 @@ async def start_processing(filename: str, background_tasks: BackgroundTasks):
         )
     
     processing_task = "task"
+    
+    dataset.data["status"] = "processing"
+    db_client.update_object(filename, dataset.get_data())
     
     background_tasks.add_task(process_dataset,filename, dataset)
 

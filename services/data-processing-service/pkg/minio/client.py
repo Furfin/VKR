@@ -95,4 +95,15 @@ class MinioClient:
                 detail=f"Unexpected error: {str(e)}"
             )
             
-    
+        
+    async def get_url(self, bucket_name: str, object_name: str) -> str:
+        try:
+            file_url = self.client.presigned_get_object(
+                bucket_name,
+                object_name,
+                expires=timedelta(hours=2)
+            )
+            
+            return file_url
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"MinIO error: {str(e)}")

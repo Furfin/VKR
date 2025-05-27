@@ -8,7 +8,9 @@ import autokeras as ak
 import keras
 from io import BytesIO
 import json
+from internal.models.metrics import *
 import tempfile
+from keras.api.utils import to_categorical
 import os
 
 
@@ -17,13 +19,17 @@ MODELS_BUCKET = "models"
 
 class Model():
     
-    def __init__(self,model_name: str, minio_client: MinioClient, db_client: storage.ModelsStorageClient):
+    
+    def __init__(self,model_name: str, minio_client: MinioClient, db_client: storage.ModelsStorageClient, dataset: str = ""):
         self.minio_client = minio_client
         self.db = db_client
         self.model_name = model_name
+        self.metrics_callback_regression = AutoKerasMetricsCallback(self.model_name, "regression")
+        self.metrics_callback_classification = AutoKerasMetricsCallback(self.model_name, "classification")
         try:
-            self.model_data = {"name":model_name}
+            self.model_data = {"name":model_name, "dataset_name":dataset}
             self.model_data["status"] = "new"
+            self.model_data["data_status"] = "new"
             self.db.create_object(model_name, self.model_data)
         except Exception as e:
             try:
@@ -65,17 +71,19 @@ class Model():
         self.db.update_object(self.model_name, self.model_data)
     
     async def numeric_train(self, filename:str, num_epoch: int):
+        
         X = pd.read_csv(await self.minio_client.download_fileobj("datasets", "preprocessed_"+filename))
         Y = pd.read_csv(await self.minio_client.download_fileobj("datasets", "preprocessed_target_"+filename))
         X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33, random_state=1)
         input  = ak.Input()
-        out = ak.RegressionHead(output_dim=1)
-        search = ak.AutoModel(max_trials=10, overwrite=True, inputs=input, outputs=out,)
-        search.fit(x = X_train.values, y = y_train.values, epochs=num_epoch, verbose = 0)
+        out = ak.RegressionHead(output_dim=len(Y.columns))
+        search = ak.AutoModel(max_trials=20, overwrite=True, inputs=input, outputs=out,)
+        search.fit(x = X_train.values,  validation_data=(X_test.values, y_test.values), y = y_train.values, epochs=num_epoch, verbose = 0,callbacks=[self.metrics_callback_regression])
         model = search.export_model()
-        return model, model.evaluate(X_test, y_test)
+        return model, model.evaluate(X_test.values, y_test.values)
     
     async def cat_train(self, filename:str, num_epoch: int):
+        
         X = pd.read_csv(await self.minio_client.download_fileobj("datasets", "preprocessed_"+filename))
         Y = pd.read_csv(await self.minio_client.download_fileobj("datasets", "preprocessed_target_"+filename))
 
@@ -85,14 +93,15 @@ class Model():
                 encoder.fit_transform(Y),
                 index=Y.index,
             )
+        Y = to_categorical(Y, num_classes=classes)
         X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33, random_state=1)
-
+        
         input  = ak.Input()
-        out = ak.ClassificationHead(num_classes=classes,  loss=keras.losses.CategoricalCrossentropy())
-        search = ak.AutoModel(max_trials=1, overwrite=True, inputs=input, outputs=out)
-        search.fit(x=X_train.values, y=y_train.values, epochs=num_epoch, verbose = 0)
+        out = ak.ClassificationHead(num_classes=classes)
+        search = ak.AutoModel(max_trials=20, overwrite=True, inputs=input, outputs=out)
+        search.fit(x=X_train.values, y=y_train,  validation_data=(X_test.values, y_test), epochs=num_epoch, verbose = 0, callbacks=[self.metrics_callback_classification])
         model = search.export_model()
-        return model, list(model.evaluate(X_test, y_test))
+        return model, list(model.evaluate(X_test.values, y_test))
     
     async def save_model_to_minio(self, model):
         try:
@@ -114,7 +123,6 @@ class Model():
         except Exception as e:
             raise ValueError("error error")
         finally:
-            # 5. Гарантированное удаление временного файла
             if os.path.exists(temp_path):
                 os.remove(temp_path)
         

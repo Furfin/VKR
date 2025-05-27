@@ -9,7 +9,7 @@ from nltk.tokenize import word_tokenize
 from io import BytesIO
 
 class Dataset:    
-    def __init__(self,minio_client: MinioClient, filename: str,target: str):
+    def __init__(self,minio_client: MinioClient, filename: str,target: str = ""):
         self.filename = filename
         self.minio_client = minio_client
         self.df = None
@@ -98,7 +98,7 @@ class Dataset:
         return df
 
     async def upload_preprocessed_target(self):
-        df = pd.read_csv(await self.minio_client.download_fileobj(DATASETS_BUCKET, self.filename))[self.data["target"]]
+        df = self.augment_target(pd.read_csv(await self.minio_client.download_fileobj(DATASETS_BUCKET, self.filename)), self.data["aug_num"])
         df.name = self.data["target"]
         if self.data[COLUMNS_KEY][self.data["target"]]["type"] == cathegorical_datatype:
             pass
@@ -155,6 +155,20 @@ class Dataset:
                 new_df.append(series)
         return pd.concat(new_df, axis=1, join='inner')
     
+    def augment_target(self, df: pd.DataFrame, n_samples: int = 0) -> pd.DataFrame:
+        new_df = []
+        column = self.data["target"]
+        data = self.data[COLUMNS_KEY]
+
+        if n_samples == 0:
+            new_df.append(df[column])
+        else:
+            series = augment_data(df[column], n_samples, augmentations[data[column]["aug"]])
+            series.name = column
+            new_df.append(series)
+        return pd.concat(new_df, axis=1, join='inner')
+    
     def cast_to_cat(self, col: str) -> pd.Series:
         self.data[COLUMNS_KEY][col] = {'type': cathegorical_datatype}
         self.set_preprocessing_strats()
+        

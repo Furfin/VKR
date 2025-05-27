@@ -6,4 +6,4 @@ scrape_configs:
   - job_name: 'fastapi-services'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['facade:8000', 'data-processing-service:8000', 'models-service:8000', 'models-training-service:8000']
+      - targets: ['host.docker.internal:8002']

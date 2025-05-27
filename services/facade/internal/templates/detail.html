@@ -69,9 +69,9 @@
       <th>Augmentation num</th>
       <td>{{ obj.data.aug_num }}</td>
       <td>
-        <form action="/datasets/{{ filename }}/change_augmentation" method="post">
-            <button type="submit">Modify</button>
-        </form>
+         <button data-bs-toggle="modal" data-bs-target="#editModal">
+          Update
+        </button>
       </td>
     </tr>
   </tbody>
@@ -116,7 +116,9 @@
       <th scope="col">Name</th>
       <th scope="col">Type</th>
       <th scope="col">Preprocessing strategy</th>
+      <th scope="col">Change Preprocessing</th>
       <th scope="col">Augmentation strategy</th>
+      <th scope="col">Change Augmentation</th>
       <th scope="col">Drop</th>
     </tr>
   </thead>
@@ -125,8 +127,52 @@
     <tr>
         <th>{{obj2[0]}}</th>
         <td>{{obj2[1].type}}</td>
-        <td>{{obj2[1].strat}}</td>  
+        <td>{{obj2[1].strat}}</td>
+        <td> 
+          {% if obj2[0] != obj.data.target %}
+            <div class="dropdown">
+                <button class="btn btn-sm btn-secondary dropdown-toggle" 
+                        type="button" 
+                        id="dropdownMenuButton{{ loop.index }}" 
+                        data-bs-toggle="dropdown">
+                  {{ current_status }}
+                </button>
+                <ul class="dropdown-menu">
+                  {% for status in obj2[1].strats %}
+                    <li>
+                      <form method="POST" action="/update_strat/{{filename}}/{{obj2[0]}}?strat={{status}}" style="display: inline;">
+                        <button type="submit">
+                          {{status}}
+                        </button>
+                      </form>
+                    </li>
+                  {% endfor %}
+              </ul>
+            {%endif%}
+        </td>
         <td>{{obj2[1].aug}}</td>
+        <td> 
+          {% if obj2[0] != obj.data.target %}
+            <div class="dropdown">
+                <button class="btn btn-sm btn-secondary dropdown-toggle" 
+                        type="button" 
+                        id="dropdownMenuButton{{ loop.index }}" 
+                        data-bs-toggle="dropdown">
+                  {{ current_status }}
+                </button>
+                <ul class="dropdown-menu">
+                  {% for status in obj2[1].augs %}
+                    <li>
+                      <form method="POST" action="/update_aug/{{filename}}/{{obj2[0]}}?strat={{status}}" style="display: inline;">
+                        <button type="submit">
+                          {{status}}
+                        </button>
+                      </form>
+                    </li>
+                  {% endfor %}
+              </ul>
+            {%endif%}
+        </td>
         <td>
             {% if obj2[0] != obj.data.target %}
             <button id="Drop{{obj2[0]}}">Drop</button>
@@ -172,14 +218,8 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
                 'accept': 'application/json',
             }
         });
-        
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            alert('Action failed: ' + (await response.text()));
-        }
     } catch (error) {
-        alert('Network error: ' + error);
+        window.location.reload();
     }
 });
 </script>
@@ -198,6 +238,28 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
 </a>
 
 {%endif%}
+
+
+
+<!-- Модальное окно -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Augmentation num</h5>
+      </div>
+      <form method="POST" action="/update-value?filename={{filename}}">
+        <div class="modal-body">
+          <input id = "number" type="number" class="form-control" name="number" value="{{ current_value }}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 
 {% endblock %}

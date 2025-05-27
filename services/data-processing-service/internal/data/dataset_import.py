@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import dateparser
+from internal.data.preprocess_dataset import *
+from internal.data.dataset_augmentation import *
 from pandas.api.types import (
     is_numeric_dtype,
     is_string_dtype,
@@ -47,26 +49,28 @@ def detect_column_types(df: pd.DataFrame,data, categorical_threshold=0.1):
             continue
         
         if is_valid_datetime(df[col]):
-            type_info[col] = {'type': datetime_datatype}
+            type_info[col] = {'type': datetime_datatype, 'strats': date_strats, "augs":date_augs}
             continue
             
         if is_bool_dtype(df[col]):
-            df[col] = df[col].astype(int)
-            type_info[col] = {'type': numeric_datatype}
+            df[col] = df[col].astype(str)
+            type_info[col] = {'type': cathegorical_datatype, 
+                    'unique_values': df[col].nunique(),
+                    'strats': cat_strats, "augs":cat_augs}
             continue
             
         if is_string_dtype(df[col]):
             try:
                if not col.lower().endswith(('_id', 'id')) and df[col].head(100).apply(parse_date).all():
                    df[col] = df[col].apply(parse_date)
-                   type_info[col] = {'type': datetime_datatype}
+                   type_info[col] = {'type': datetime_datatype, 'strats': date_strats, "augs":date_augs}
                    continue
             except Exception as error:
                 print(error)
                 pass
                 
         if is_numeric_dtype(df[col]):
-            type_info[col] = {'type': numeric_datatype}
+            type_info[col] = {'type': numeric_datatype, 'strats': num_strats, "augs":num_augs}
             continue
             
 
@@ -74,10 +78,12 @@ def detect_column_types(df: pd.DataFrame,data, categorical_threshold=0.1):
             unique_ratio = df[col].nunique() / len(df[col].dropna())
             if unique_ratio < categorical_threshold:
                 type_info[col] = {'type': cathegorical_datatype, 
-                                 'unique_values': df[col].nunique()}
+                                 'unique_values': df[col].nunique(),
+                                 'strats': cat_strats, "augs":cat_augs}
             else:
                 type_info[col] = {'type': text_datatype, 
-                                 'dtype': str(df[col].dtype)}
+                                 'dtype': str(df[col].dtype),
+                                 'strats': text_strats, "augs":text_augs}
             continue
 
         type_info[col] = {'type': 'unknown', 'dtype': str(df[col].dtype)}

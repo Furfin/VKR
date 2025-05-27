@@ -1,0 +1,25 @@
+,0
+0,"0      2190
+1      2191
+2      2192
+3      2193
+4      2194
+       ... 
+724    2915
+725    2916
+726    2917
+727    2918
+728    2919
+Name: id, Length: 729, dtype: int64"
+1,"0      True
+1      True
+2      True
+3      True
+4      True
+       ... 
+724    True
+725    True
+726    True
+727    True
+728    True
+Name: rainfall, Length: 729, dtype: bool"
