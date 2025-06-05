@@ -9,7 +9,7 @@
 
 {% if newmodel|length > 0 %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            New model <strong>{{newmodel}}</strong> created
+            Новая модель <strong>{{newmodel}}</strong> создана
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -18,7 +18,7 @@
 
 {% if error|length > 0 %}
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            Error: <strong>{{error}}</strong>
+            Ошибка: <strong>{{error}}</strong>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -26,16 +26,16 @@
 {%endif%}
 
 <button data-bs-toggle="modal" data-bs-target="#modelModal">
-          Create new model
+          Создать новую модель
         </button>
 <br>
 
-<h1>Models list</h1>
+<h1>Список моделей</h1>
 <ul>
     {% for obj in objects %}
     <li>
         <a href="/models/{{ obj.model_name }}">{{ obj.model_name }}</a>
-        <button id="delete{{obj.model_name}}">delete</button>
+        <button id="delete{{obj.model_name}}">Удалить</button>
             <script>
             document.getElementById("delete{{obj.model_name}}").addEventListener('click', async () => {
                 const model_name = "{{ obj.model_name }}";
@@ -76,18 +76,18 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Create New Model</h5>
+        <h5 class="modal-title">Создание новой медли</h5>
       </div>
       <form method="POST" action="/create_model">
         <div class="modal-body">
-            <h5>Enter model name</h5>
+            <h5>Введите имя модели</h5>
           <input id = "model_name" type="string" class="form-control" name="model_name" title="enter model name">
-          <h5>Enter dataset name</h5>
+          <h5>Введите название датасета</h5>
           <input id = "dataset" type="string" class="form-control" name="dataset" title="enter dataset name">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Create</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+          <button type="submit" class="btn btn-primary">Создать</button>
         </div>
       </form>
     </div>

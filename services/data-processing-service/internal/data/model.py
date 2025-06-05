@@ -93,7 +93,7 @@ class Dataset:
         df = augment_data((await self.minio_client.download_fileobj_sample(DATASETS_BUCKET, self.filename))[self.data["target"]],  self.data["aug_num"],  augmentations[self.data[COLUMNS_KEY][self.data["target"]]["aug"]])
         data = self.data[COLUMNS_KEY]
         df.name = self.data["target"]
-        df = apply_strat(df.to_frame(), self.data["target"], strats[data[self.data["target"]]["strat"]])
+        df = apply_strat(df, self.data["target"], strats[data[self.data["target"]]["strat"]])
         
         return df
 
@@ -103,7 +103,7 @@ class Dataset:
         if self.data[COLUMNS_KEY][self.data["target"]]["type"] == cathegorical_datatype:
             pass
         else:
-            df = apply_strat(df.to_frame(), self.data["target"], strats[NUM_STRAT_NONE])
+            df = apply_strat(df, self.data["target"], strats[NUM_STRAT_NONE])
         buffer = BytesIO()
         df.to_csv(buffer, index=False)
         buffer.seek(0)

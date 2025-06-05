@@ -17,6 +17,26 @@ import os
 API_URL = "http://localhost:8001/api/"
 MODELS_BUCKET = "models"
 
+def prepare_data(y_onehot):
+    num_classes = y_onehot.shape[1]
+    
+    # Случай 1: one-hot с двумя классами (бинарная)
+    if num_classes == 2:
+        # Вариант A: Оставляем one-hot (2 выхода)
+        y_prepared = y_onehot
+        is_binary = False
+        
+        # Вариант B: Конвертируем в 1D (1 выход)
+        # y_prepared = np.argmax(y_onehot, axis=1)
+        # is_binary = True
+        
+    # Случай 2: Мультиклассовая (N классов)
+    else:
+        y_prepared = y_onehot
+        is_binary = False
+        
+    return y_prepared
+
 class Model():
     
     
@@ -93,7 +113,8 @@ class Model():
                 encoder.fit_transform(Y),
                 index=Y.index,
             )
-        Y = to_categorical(Y, num_classes=classes)
+        print(Y)
+        Y = Y.values
         X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33, random_state=1)
         
         input  = ak.Input()

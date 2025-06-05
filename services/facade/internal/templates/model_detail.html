@@ -6,7 +6,7 @@
 
 {% if error|length > 0 %}
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            Error: <strong>{{error}}</strong>
+            Ошибка: <strong>{{error}}</strong>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -18,16 +18,16 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Generate Model from current dataset</h5>
+        <h5 class="modal-title">Сгенерировать новую архитектуру для модели</h5>
       </div>
       <form method="POST" action="/generate_model/{{model_name}}">
         <div class="modal-body">
-          <h5>Enter number of epochs</h5>
+          <h5>Введите количество эпох</h5>
           <input id = "enum" type="number" class="form-control" name="enum" title="enum">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Create</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+          <button type="submit" class="btn btn-primary">Сгенерировать</button>
         </div>
       </form>
     </div>
@@ -39,40 +39,40 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Run model on new dataset (.csv)</h5>
+        <h5 class="modal-title">Разметить новый датасет (.csv)</h5>
       </div>
       <form id="runWithNewData" action="/run_model/{{model_name}}" method="post" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="file">Select File:</label>
+            <label for="file">Выбирите файл:</label>
             <input type="file" name="file" id="file" required>
         </div>
-        <button type="submit" class="button" onclick="javascript:window.location.reload()">Upload</button>
+        <button type="submit" class="button" onclick="javascript:window.location.reload()">Загрузить</button>
     </form>
     </div>
   </div>
 </div>
 
-<h1>Model info ({{model_name}})</h1>
+<h1>Информация о модели ({{model_name}})</h1>
 
-<h1>Dataset </h1>
+<h1>Датасет </h1>
 <a href="/datasets/{{ dataset }}">{{ dataset }}</a>
 
 </br></br>
 
-<h1>Model generation status: {{status}}</h1>
+<h1>Статус генерации архитектуры: {{status}}</h1>
 
-<h1>Model run status: {{model_run_status}}</h1>
+<h1>Статус разметки датасета: {{model_run_status}}</h1>
 
-<button  data-bs-toggle="modal" data-bs-target="#modelGenerateModal">Generate model with current dataset</button>
+<button  data-bs-toggle="modal" data-bs-target="#modelGenerateModal">Сгенерировать новую архитектуру модели</button>
 
 </br></br>
 
 
 {% if model_run_status == 'done' %}
 
-Download
+Загрузить
 <a href="{{ pred_url }}" class="file-link" target="_blank">
-    Predictions
+    размеченные данные
 </a>
 
 {%endif%}
@@ -81,31 +81,32 @@ Download
 
 </br></br>
 
-Download final
+Загрузить
 <a href="{{ model_url }}" class="file-link" target="_blank">
-    model.keras        
+    model.keras     
 </a>
+- файл с весами и архитектурой модели
 </br></br>
 
-<button  data-bs-toggle="modal" data-bs-target="#modelRunWithNewData">Run model with new data</button>
+<button  data-bs-toggle="modal" data-bs-target="#modelRunWithNewData">Разметить данные</button>
 
 </br></br>
 <div>
-        <h1 class="mb-4">Model Information: {{ model.name }}</h1>
+        <h1 class="mb-4">Информация о модели: {{ model.name }}</h1>
         
         <!-- Model Summary Card -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <h2>Model Summary</h2>
+                <h2>Общая Информация</h2>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Input Shape:</strong> {{ model.input_shape }}</p>
-                        <p><strong>Output Shape:</strong> {{ model.output_shape }}</p>
+                        <p><strong>Форма входных данных:</strong> {{ model.input_shape }}</p>
+                        <p><strong>Форма выходных данных:</strong> {{ model.output_shape }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Total Parameters:</strong> 
+                        <p><strong>Всего параметров:</strong> 
                             <span class="badge rounded-pill bg-secondary">
                                 {{ "{:,}".format(model.trainable_params) }}
                             </span>
@@ -116,7 +117,7 @@ Download final
         </div>
         
         <!-- Layers Information -->
-        <h2 class="mb-3">Layers</h2>
+        <h2 class="mb-3">Слои</h2>
         {% for layer in model.layers %}
         <div class="card layer-card">
             <div class="card-header">
@@ -124,7 +125,7 @@ Download final
                     {{ layer.name }} 
                     <span class="badge bg-info">{{ layer.type }}</span>
                     <span class="badge badge-params">
-                        {{ "{:,}".format(layer.params) }} params
+                        {{ "{:,}".format(layer.params) }} параметров
                     </span>
                     {% if layer.trainable %}
                     <span class="badge badge-trainable">Trainable</span>
@@ -136,11 +137,11 @@ Download final
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Input Shape:</strong> {{ layer.input_shape }}</p>
-                        <p><strong>Output Shape:</strong> {{ layer.output_shape }}</p>
+                        <p><strong>Форма входных данных:</strong> {{ layer.input_shape }}</p>
+                        <p><strong>Форма выходных данных:</strong> {{ layer.output_shape }}</p>
                     </div>
                     <div class="col-md-6">
-                        <h4 class="h6">Configuration</h4>
+                        <h4 class="h6">Конфигурация</h4>
                         <div class="config-json">
                             <pre>{{ layer.config | tojson(indent=4) }}</pre>
                         </div>

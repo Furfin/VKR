@@ -8,22 +8,22 @@
 
 {% if newfile|length > 0 %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Dataset <strong>{{newfile}}!</strong> uploaded
+            Датасет <strong>{{newfile}}!</strong> создан
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>
         </div>
 {%endif%}
 
-<a href="/datasets/upload">Upload dataset</a>
+<a href="/datasets/upload">Создать новый датасет</a>
 <br>
 
-<h1>Datasets list</h1>
+<h1>Список датасетов</h1>
 <ul>
     {% for obj in objects %}
     <li>
         <a href="/datasets/{{ obj.filename }}">{{ obj.filename }}</a>
-        <button id="delete{{obj.filename}}">delete</button>
+        <button id="delete{{obj.filename}}">Удалить</button>
             <script>
             document.getElementById("delete{{obj.filename}}").addEventListener('click', async () => {
                 const filename = "{{ obj.filename }}";

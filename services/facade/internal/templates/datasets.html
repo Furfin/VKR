@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Upload dataset{% endblock %}
+{% block title %}Создание нового датасета{% endblock %}
 
 {% block content %}
 <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
     <div class="form-group">
-        <label for="file">Select File:</label>
+        <label for="file">Загрузить файл:</label>
         <input type="file" name="file" id="file" required>
     </div>
     <div class="form-group">
-        <label for="target">Target:</label>
+        <label for="target">Целевая переменная:</label>
         <input type="text" id="target" name="target" required>
     </div>
-    <button type="submit" class="button" onclick="javascript:window.location.reload()">Upload</button>
+    <button type="submit" class="button" onclick="javascript:window.location.reload()">Создать</button>
 </form>
 {% endblock %}

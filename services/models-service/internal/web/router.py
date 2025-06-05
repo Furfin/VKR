@@ -124,7 +124,7 @@ async def predict_data(modelData: Model, model_name: str, filename: str):
         X = pd.read_csv(await modelData.minio_client.download_fileobj("data", "preprocessed_"+filename))
         url = await minio_client.get_url("models", model_name+".keras")
         model = load_model_from_url(url)
-        
+        print(X.values, X.shape)
         predictions = model.predict(X.values)
         X['prediction'] = predictions
         

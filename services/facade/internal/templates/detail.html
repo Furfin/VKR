@@ -35,49 +35,49 @@
     }
 </style>
 
-<h1>Dataset info ({{filename}})</h1>
+<h1>Датасет ({{filename}})</h1>
 
 <table>
   <caption>
-    Dataset metadata
+    Метаданные датасета
   </caption>
   <thead>
     <tr>
-      <th scope="col">Atribute</th>
-      <th scope="col">Value</th>
-      <th scope="col">Action</th>
+      <th scope="col">Признак</th>
+      <th scope="col">Значение</th>
+      <th scope="col">Действие</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>Target</th>
+      <th>Целевая переменная</th>
       <td>{{ obj.data.target }}</td>
       <td>None</td>
       
     </tr>
     <tr>
-        <th>Target type</th>
+        <th>Тип таргета</th>
         <td>{{ tt }}</td>
         <td>None</td>    
     </tr>
     <tr>
-      <th>Columns</th>
+      <th>Количество столбцов</th>
       <td>{{ cols }}</td>
       <td>None</td>
     </tr>
     <tr>
-      <th>Augmentation num</th>
+      <th>Количество новых строк после Аугментации</th>
       <td>{{ obj.data.aug_num }}</td>
       <td>
          <button data-bs-toggle="modal" data-bs-target="#editModal">
-          Update
+          Обновить значение
         </button>
       </td>
     </tr>
   </tbody>
 </table>
 
-<h1>Columns</h1>
+<h1>Столбцы</h1>
 
 <style>
   table {
@@ -113,13 +113,13 @@
 <table>
   <thead>
     <tr>
-      <th scope="col">Name</th>
-      <th scope="col">Type</th>
-      <th scope="col">Preprocessing strategy</th>
-      <th scope="col">Change Preprocessing</th>
-      <th scope="col">Augmentation strategy</th>
-      <th scope="col">Change Augmentation</th>
-      <th scope="col">Drop</th>
+      <th scope="col">Название</th>
+      <th scope="col">Тип данных</th>
+      <th scope="col">Стратегия предобработки</th>
+      <th scope="col">Изменить стратегию</th>
+      <th scope="col">Стратегия аугментации</th>
+      <th scope="col">Изменить аугментацию</th>
+      <th scope="col">Удалить</th>
     </tr>
   </thead>
   <tbody>
@@ -175,7 +175,7 @@
         </td>
         <td>
             {% if obj2[0] != obj.data.target %}
-            <button id="Drop{{obj2[0]}}">Drop</button>
+            <button id="Drop{{obj2[0]}}">Удалить</button>
             <script>
             document.getElementById("Drop{{obj2[0]}}").addEventListener('click', async () => {
                 const filename = "{{ filename }}";
@@ -202,9 +202,9 @@
   </tbody>
 </table>
 
-<h1>Preprocessing status: {{status}}</h1>
+<h1>Статус предобработки: {{status}}</h1>
 
-<button id="fetchBtn">Start processing</button>
+<button id="fetchBtn">Начать предобработку</button>
 
 <script>
 document.getElementById('fetchBtn').addEventListener('click', async () => {
@@ -228,13 +228,13 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
 
 {% if status == 'done' %}
 <a href="{{ data_url }}" class="file-link" target="_blank">
-    data        
+    Датасет        
 </a>
 
 <br>
 
 <a href="{{ target_url }}" class="file-link" target="_blank">
-    target        
+    Целевая переменная        
 </a>
 
 {%endif%}
@@ -246,15 +246,15 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Update Augmentation num</h5>
+        <h5 class="modal-title">Новое число строк после аугментации</h5>
       </div>
       <form method="POST" action="/update-value?filename={{filename}}">
         <div class="modal-body">
           <input id = "number" type="number" class="form-control" name="number" value="{{ current_value }}">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Update</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+          <button type="submit" class="btn btn-primary">Обновить</button>
         </div>
       </form>
     </div>
